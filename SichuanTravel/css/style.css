@@ -1,0 +1,209 @@
+/* 全局渐变背景 */
+body {
+    font-family: 'Microsoft YaHei', sans-serif;
+    background: linear-gradient(-45deg, #f7f5fa, #fcfdfe, #fcf1fc, #f0f8ff);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    color: #333;
+    overflow-x: hidden;
+}
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+/* 毛玻璃导航栏 */
+.glass-nav {
+    background: rgba(255, 255, 255, 0.2); 
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgb(143, 143, 140);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+}
+/* 功能导航卡片【修复遮挡核心】 */
+.glass-card {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    /* 轻微上浮banner，幅度减小，不压下方 */
+    margin-top: -12px;
+    /* 底部大间距，隔绝四川简介卡片，彻底无覆盖 */
+    margin-bottom: 60px;
+    position: relative;
+    z-index: 2;
+}
+.glass-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+}
+/* 导航按钮鼠标手型，可点击反馈 */
+.nav-item {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.nav-item:hover {
+    transform: scale(1.05);
+}
+/* 热门景点推荐标题控制 */
+.section-title {
+    text-align: center;
+    margin-top: -25px; /* 文字向上移动，避开上方空白区域 */
+    margin-bottom: 50px;
+    font-weight: bold;
+}
+.glass-input {
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    color: #333;
+}
+.glass-input:focus {
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 0 8px rgba(135, 196, 252, 0.6);
+}
+.glass-btn {
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+}
+.glass-btn-primary {
+    background: rgba(13, 110, 253, 0.7);
+    backdrop-filter: blur(5px);
+    border: none;
+}
+.glass-caption {
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(5px);
+    border-radius: 10px;
+    padding: 20;
+}
+.glass-footer {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 0.3);
+}
+.glass-card-wrapper {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+}
+/* 轮播图 */
+.carousel-item {
+    height: 80vh;
+    min-height: 320px;
+}
+.carousel-item img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: center;
+}
+/* AI悬浮按钮 */
+.ai-assistant-btn {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    cursor: pointer;
+    z-index: 1050;
+    transition: all 0.3s ease;
+    animation: floatBtn 3s ease-in-out infinite;
+}
+.ai-assistant-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+@keyframes floatBtn {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+.card.glass-card button:hover {
+    transform: scale(1.15);
+    transition: transform 0.2s ease-in-out;
+}
+.x-small {
+    font-size: 11px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-clamp: 2;
+    overflow: hidden;
+}
+/* 页脚样式 */
+.custom-dark-footer {
+    background-color: #2b2e33;
+    color: #ffffff;
+    font-size: 14px;
+    padding: 1px 0 !important;
+    padding-top: 50px !important;
+    padding-bottom: 10px !important;
+}
+.custom-dark-footer h5 {
+    font-size: 18px;
+    letter-spacing: 0.5px;
+}
+.custom-dark-footer h6 {
+    font-size: 15px;
+    font-weight: bold;
+}
+.custom-footer-muted {
+    color: #9da3ab !important;
+}
+.custom-footer-muted a {
+    color: #9da3ab;
+    transition: color 0.2s ease-in-out;
+}
+.custom-footer-muted a:hover {
+    color: #ffffff;
+}
+.qrcode-wrapper {
+    width: 80px;
+    height: 80px;
+    background-color: #ffffff;
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+    background-image: radial-gradient(#2b2e33 22%, transparent 22%), radial-gradient(#2b2e33 22%, transparent 22%);
+    background-size: 4px 4px;
+    background-position: 0 0, 2px 2px;
+}
+.custom-footer-hr {
+    border-color: rgba(255, 255, 255, 0.12);
+    opacity: 1;
+}
+/* 顶部功能图标hover盒子样式 */
+.hover-icon-box {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+.hover-icon-box:hover {
+    background: rgba(255,255,255,0.8);
+    transform: translateY(-6px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+}
+/* 景点卡片美化 */
+.spot-card {
+    overflow: hidden;
+    border-radius: 18px !important;
+}
+.spot-img {
+    height: 160px;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+.spot-card:hover .spot-img {
+    transform: scale(1.08);
+}
+.heart-btn:hover {
+    transform: scale(1.2);
+}

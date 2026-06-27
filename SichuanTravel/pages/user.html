@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>巴适游四川 - 个人中心</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    <style>
+        :root {
+            --main-purple: #764ba2;
+            --main-blue: #667eea;
+            --main-green: #28a745;
+            --warm-orange: #ff9f43;
+            --danger-red: #ee5253;
+            --glass-bg: rgba(255, 255, 255, 0.72);
+            --glass-border: rgba(255, 255, 255, 0.9);
+            --shadow-soft: 0 8px 32px rgba(31, 38, 135, 0.12);
+            --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.07);
+            --shadow-btn: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            background: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        /* 导航栏升级：增加底部细线条、细微高度 */
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.75) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(200, 200, 220, 0.35);
+            box-shadow: var(--shadow-light);
+            height: 70px;
+        }
+        .navbar-brand {
+            font-size: 1.4rem;
+            transition: all 0.2s ease;
+        }
+        .navbar-brand:hover {
+            transform: scale(1.02);
+            color: var(--main-purple) !important;
+        }
+        /* 卡片全面升级：增加边框柔光、悬浮光影 */
+        .glass-card {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border) !important;
+            border-radius: 18px !important;
+            box-shadow: var(--shadow-soft) !important;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: 0.4s;
+        }
+        .glass-card:hover::before {
+            left: 100%;
+        }
+        .glass-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 36px rgba(31, 38, 135, 0.18) !important;
+        }
+        /* 头像美化：旋转动画、外圈渐变光环 */
+        .rounded-circle {
+            border: 4px solid rgba(255,255,255,0.85);
+            box-shadow: 0 0 0 2px rgba(118, 75, 162, 0.2);
+            transition: 0.3s ease;
+        }
+        .rounded-circle:hover {
+            transform: rotate(8deg) scale(1.05);
+        }
+        /* 按钮通用升级：点击按压效果 */
+        .glass-btn {
+            border-radius: 30px !important;
+            transition: all 0.2s ease;
+        }
+        .glass-btn:hover {
+            background-color: rgba(0,0,0,0.05);
+            transform: translateY(-2px);
+        }
+        .glass-btn:active {
+            transform: translateY(0px);
+        }
+        .glass-btn-primary {
+            background: linear-gradient(135deg, var(--main-blue), var(--main-purple)) !important;
+            border: none !important;
+            border-radius: 30px !important;
+            box-shadow: var(--shadow-btn);
+        }
+        .glass-btn-primary:hover {
+            opacity: 0.92;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+        }
+        .glass-btn-primary:active {
+            transform: translateY(0);
+        }
+        /* 退出按钮 */
+        .btn-danger {
+            background: linear-gradient(135deg, #ee5253, #ff6b6b) !important;
+            border: none;
+            box-shadow: var(--shadow-btn);
+        }
+        .btn-danger:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(238, 82, 83, 0.25);
+        }
+        .btn-danger:active {
+            transform: translateY(0);
+        }
+        /* 收藏条目hover高亮 */
+        .bg-opacity-50 {
+            background-color: rgba(255,255,255,0.8) !important;
+            border-radius: 12px !important;
+            transition: 0.2s ease;
+            border: 1px solid transparent !important;
+        }
+        .bg-opacity-50:hover {
+            transform: scale(1.01);
+            box-shadow: var(--shadow-light);
+            border-color: rgba(118, 75, 162, 0.25) !important;
+        }
+        /* 足迹列表hover */
+        .list-group-item {
+            border-bottom-color: rgba(0,0,0,0.08) !important;
+            transition: 0.2s;
+        }
+        .list-group-item:hover {
+            background: rgba(118, 75, 162, 0.06) !important;
+        }
+        /* 草稿箱 */
+        .draft-input {
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            width: 100%;
+            resize: none;
+            outline: none;
+            transition: 0.2s;
+        }
+        .draft-input:focus {
+            border-color: var(--main-purple);
+            box-shadow: 0 0 0 2px rgba(118, 75, 162, 0.2);
+        }
+        .draft-item {
+            background: rgba(255,255,255,0.8);
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            transition: 0.2s;
+        }
+        .draft-item:hover {
+            background: rgba(255,255,255,0.95);
+        }
+        /* 攻略草稿可点击光标 */
+        .draft-click {
+            cursor: pointer;
+            flex: 1;
+        }
+        /* 空状态图标放大、配色优化 */
+        .fa-folder-open, .fa-file-lines, .fa-lock {
+            color: var(--main-purple) !important;
+            opacity: 0.7;
+        }
+        /* 会员徽章渐变优化 */
+        .badge.bg-warning {
+            background: linear-gradient(135deg, #ffd32a, var(--warm-orange)) !important;
+            box-shadow: 0 2px 6px rgba(255, 159, 67, 0.25);
+        }
+        /* 页脚美化 */
+        .glass-footer {
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(8px);
+            border-top: 1px solid rgba(200, 200, 220, 0.3);
+        }
+        /* 侧边统计图标色彩区分 */
+        .fa-calendar-days {color:#6c757d;}
+        .fa-heart {color:#dc3545;}
+        .fa-file-pen {color:#28a745;}
+        .fa-clock-rotate-left {color:#0d6efd;}
+    </style>
+</head>
+<body>
+    <div id="userApp">
+        
+        <nav class="navbar navbar-expand-lg fixed-top glass-nav">
+            <div class="container">
+                <!-- 路径修正：../index.html -->
+                <a class="navbar-brand fw-bold text-dark" href="../index.html"><i class="fa-solid fa-face-smile text-warning"></i> 巴适游四川</a>
+                <div class="ms-auto">
+                    <!-- 路径修正：../index.html -->
+                    <a href="../index.html" class="btn btn-outline-dark glass-btn btn-sm px-3"><i class="fa-solid fa-house me-1"></i> 返回首页</a>
+                </div>
+            </div>
+        </nav>
+
+        <main class="container" style="margin-top: 120px; min-height: 75vh;">
+            
+            <div v-if="!currentUser" class="text-center py-5" data-aos="zoom-in">
+                <div class="glass-card p-5 d-inline-block" style="max-width: 500px;">
+                    <i class="fa-solid fa-lock fa-4x mb-4"></i>
+                    <h3 class="fw-bold text-dark mb-3">您当前尚未登录</h3>
+                    <p class="text-muted mb-4">个人中心仅对注册会员开放，请先返回主页进行登录或注册账号。</p>
+                    <!-- 路径修正：../index.html -->
+                    <a href="../index.html" class="btn btn-primary glass-btn-primary px-4 py-2 fw-bold">前去首页登录</a>
+                </div>
+            </div>
+
+            <div v-else class="row g-4">
+                
+                <div class="col-lg-4" data-aos="fade-right">
+                    <div class="glass-card p-4 text-center">
+                        <div class="position-relative d-inline-block mb-3">
+                            <div class="bg-primary text-white rounded-circle shadow-sm d-flex align-items-center justify-content-center fw-bold" 
+                                 style="width: 100px; height: 100px; font-size: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;">
+                                {{ currentUser.username.charAt(0).toUpperCase() }}
+                            </div>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-1">{{ currentUser.username }}</h4>
+                        <span class="badge bg-warning text-dark mb-4 px-3 py-2" style="border-radius: 30px;">
+                            <i class="fa-solid fa-crown me-1"></i>川蜀旅行家 (尊贵会员)
+                        </span>
+                        
+                        <hr class="text-muted">
+                        <div class="text-start mt-3 small text-secondary">
+                            <p class="mb-2"><i class="fa-solid fa-calendar-days me-2"></i>注册时间：2026年6月</p>
+                            <p class="mb-2"><i class="fa-solid fa-heart me-2"></i>收藏景点：{{ currentUser.favorites ? currentUser.favorites.length : 0 }} 个</p>
+                            <p class="mb-2"><i class="fa-solid fa-file-pen me-2"></i>草稿数量：{{ currentUser.draftList ? currentUser.draftList.length : 0 }} 条</p>
+                            <p class="mb-0"><i class="fa-solid fa-clock-rotate-left me-2"></i>系统足迹：{{ currentUser.history ? currentUser.history.length : 0 }} 条</p>
+                        </div>
+                        <button class="btn btn-danger w-100 mt-4 py-2 fw-bold" style="border-radius: 20px;" @click="logoutUser">
+                            <i class="fa-solid fa-right-from-bracket me-1"></i> 安全退出登录
+                        </button>
+                    </div>
+                </div>
+
+                <div class="col-lg-8" data-aos="fade-left">
+                    
+                    <div class="glass-card p-4 mb-4">
+                        <h4 class="fw-bold text-dark mb-4"><i class="fa-solid fa-heart text-danger me-2"></i>我的收藏夹</h4>
+                        
+                        <div v-if="!currentUser.favorites || currentUser.favorites.length === 0" class="text-center py-4 text-muted">
+                            <i class="fa-regular fa-folder-open fa-2x mb-2"></i>
+                            <p class="small mb-0">当前收藏夹空空如也，快去首页收藏你喜欢的景点吧！</p>
+                        </div>
+                        
+                        <div v-else class="row g-3">
+                            <div class="col-md-6" v-for="spot in currentUser.favorites" :key="spot.id">
+                                <div class="d-flex align-items-center p-2 bg-white bg-opacity-50 rounded shadow-sm border position-relative">
+                                    <img :src="spot.img" class="rounded" style="width: 80px; height: 60px; object-fit: cover;">
+                                    <div class="ms-3 pe-4">
+                                        <h6 class="fw-bold text-dark mb-1 small">{{ spot.name }}</h6>
+                                        <p class="text-muted mb-0 x-small" style="font-size: 11px;">{{ spot.desc }}</p>
+                                    </div>
+                                    <button class="btn btn-sm text-danger position-absolute end-0 top-50 translate-middle-y me-2" 
+                                            @click="removeFavorite(spot)" title="移除收藏">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-4 mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="fw-bold text-dark mb-0"><i class="fa-solid fa-file-pen text-success me-2"></i>我的草稿箱</h4>
+                            <button v-if="currentUser.draftList && currentUser.draftList.length > 0" 
+                                    class="btn btn-sm btn-outline-danger" @click="clearAllDraft" style="border-radius: 15px;">
+                                清空全部草稿
+                            </button>
+                        </div>
+                        <div class="mb-3 d-flex gap-2">
+                            <textarea v-model="draftContent" class="draft-input" rows="2" placeholder="输入游记、规划笔记等内容，保存到草稿箱..."></textarea>
+                            <button class="btn btn-success px-3" @click="addDraft">保存草稿</button>
+                        </div>
+                        <div v-if="!currentUser.draftList || currentUser.draftList.length === 0" class="text-center py-3 text-muted">
+                            <i class="fa-solid fa-file-lines fa-2x mb-2"></i>
+                            <p class="small mb-0">暂无草稿内容，上方输入文字即可保存草稿</p>
+                        </div>
+                        <div v-else>
+                            <!-- 兼容两种草稿：1.分享页完整攻略草稿（可点击编辑）  2.本页面手动文字草稿 -->
+                            <div v-for="(item,index) in currentUser.draftList" :key="index" class="draft-item">
+                                <!-- 攻略草稿添加点击事件 -->
+                                <div class="small text-dark draft-click" v-if="item.formData" @click="editDraft(index)">
+                                    <div><strong>攻略标题：</strong>{{ item.formData.title || '未填写标题' }}</div>
+                                    <div style="white-space: pre-wrap;margin-top:4px;"><strong>正文：</strong>{{ item.formData.content || '暂无正文' }}</div>
+                                    <div class="text-muted mt-1" style="font-size: 12px;">保存时间：{{ item.saveTime }} <span class="text-primary">（点击编辑）</span></div>
+                                </div>
+                                <!-- 本地文字草稿不可点击 -->
+                                <div v-else style="white-space: pre-wrap;" class="small text-dark">
+                                    {{ item.content }}
+                                    <div class="text-muted mt-1" style="font-size: 12px;">保存时间：{{ item.time }}</div>
+                                </div>
+                                <button class="btn btn-sm text-danger" @click="deleteDraft(index)">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="fw-bold text-dark mb-0"><i class="fa-solid fa-shoe-prints text-primary me-2"></i>我的近期足迹</h4>
+                            <button v-if="currentUser.history && currentUser.history.length > 0" 
+                                    class="btn btn-sm btn-outline-secondary" @click="clearHistory" style="border-radius: 15px;">
+                                清空记录
+                            </button>
+                        </div>
+                        
+                        <ul class="list-group list-group-flush bg-transparent">
+                            <li v-for="(log, idx) in currentUser.history" :key="idx" 
+                                class="list-group-item bg-transparent text-dark border-0 border-bottom d-flex justify-content-between align-items-center small py-2">
+                                <span><i class="fa-solid fa-circle-check text-success me-2" style="font-size: 10px;"></i>{{ log }}</span>
+                                <span class="text-muted" style="font-size: 11px;">刚刚</span>
+                            </li>
+                            <li v-if="!currentUser.history || currentUser.history.length === 0" class="list-group-item bg-transparent text-center text-muted border-0 py-3 small">
+                                暂无任何历史足迹
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+        <footer class="glass-footer text-center py-4 mt-5">
+            <p class="mb-0 text-muted">© 2026 巴适游四川项目组. Web应用开发期末作品.</p>
+        </footer>
+
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/3.3.4/vue.global.prod.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            AOS.init({ duration: 600, once: true });
+            Vue.createApp({
+                data() {
+                    return {
+                        currentUser: JSON.parse(localStorage.getItem('currentUser')) || null,
+                        draftContent: ''
+                    }
+                },
+                methods: {
+                    logoutUser() {
+                        localStorage.removeItem('currentUser');
+                        this.currentUser = null;
+                        alert('已退出账户状态！');
+                        // 路径修正：../index.html
+                        window.location.href = '../index.html';
+                    },
+                    removeFavorite(spot) {
+                        let users = JSON.parse(localStorage.getItem('web_users')) || [];
+                        let userInList = users.find(u => u.username === this.currentUser.username);
+                        if(userInList && userInList.favorites) {
+                            let idx = userInList.favorites.findIndex(item => item.id === spot.id);
+                            if(idx > -1) {
+                                userInList.favorites.splice(idx, 1);
+                                if(!userInList.history) userInList.history = [];
+                                userInList.history.unshift(`将景点【${spot.name}】移出了收藏夹`);
+                                this.currentUser = userInList;
+                                localStorage.setItem('currentUser', JSON.stringify(userInList));
+                                localStorage.setItem('web_users', JSON.stringify(users));
+                                alert('成功移除！');
+                            }
+                        }
+                    },
+                    clearHistory() {
+                        let users = JSON.parse(localStorage.getItem('web_users')) || [];
+                        let userInList = users.find(u => u.username === this.currentUser.username);
+                        if(userInList) {
+                            userInList.history = [];
+                            this.currentUser = userInList;
+                            localStorage.setItem('currentUser', JSON.stringify(userInList));
+                            localStorage.setItem('web_users', JSON.stringify(users));
+                        }
+                    },
+                    addDraft() {
+                        const content = this.draftContent.trim();
+                        if (!content) {
+                            alert('请输入草稿内容！');
+                            return;
+                        }
+                        let users = JSON.parse(localStorage.getItem('web_users')) || [];
+                        let userInList = users.find(u => u.username === this.currentUser.username);
+                        if (!userInList.draftList) userInList.draftList = [];
+                        userInList.draftList.unshift({
+                            content: content,
+                            time: new Date().toLocaleString()
+                        });
+                        this.currentUser = userInList;
+                        localStorage.setItem('currentUser', JSON.stringify(userInList));
+                        localStorage.setItem('web_users', JSON.stringify(users));
+                        this.draftContent = '';
+                        alert('草稿保存成功！');
+                    },
+                    deleteDraft(index) {
+                        let users = JSON.parse(localStorage.getItem('web_users')) || [];
+                        let userInList = users.find(u => u.username === this.currentUser.username);
+                        userInList.draftList.splice(index, 1);
+                        this.currentUser = userInList;
+                        localStorage.setItem('currentUser', JSON.stringify(userInList));
+                        localStorage.setItem('web_users', JSON.stringify(users));
+                    },
+                    clearAllDraft() {
+                        if (!confirm('确定要清空所有草稿吗？此操作不可恢复！')) return;
+                        let users = JSON.parse(localStorage.getItem('web_users')) || [];
+                        let userInList = users.find(u => u.username === this.currentUser.username);
+                        userInList.draftList = [];
+                        this.currentUser = userInList;
+                        localStorage.setItem('currentUser', JSON.stringify(userInList));
+                        localStorage.setItem('web_users', JSON.stringify(users));
+                    },
+                    // 新增：点击草稿，把下标存入本地，跳转同目录分享页 ./share.html
+                    editDraft(index) {
+                        localStorage.setItem('editDraftIndex', index);
+                        window.location.href = './share.html';
+                    }
+                },
+                mounted() {
+                    if(this.currentUser) {
+                        let users = JSON.parse(localStorage.getItem('web_users')) || [];
+                        let userInList = users.find(u => u.username === this.currentUser.username);
+                        if(userInList) {
+                            if(!userInList.history) userInList.history = [];
+                            userInList.history.unshift('访问了个人信息控制中心面板');
+                            if(userInList.history.length > 10) userInList.history.pop();
+                            this.currentUser = userInList;
+                            localStorage.setItem('currentUser', JSON.stringify(userInList));
+                            localStorage.setItem('web_users', JSON.stringify(users));
+                        }
+                    }
+                }
+            }).mount('#userApp');
+        });
+    </script>
+</body>
+</html>

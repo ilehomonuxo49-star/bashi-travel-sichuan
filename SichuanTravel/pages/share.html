@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分享你的旅行故事 - 攻略中心</title>
+    <!-- 公共CDN 和 strategy.html 完全统一 -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- 分享页面独立CSS 路径修正 -->
+    <link rel="stylesheet" href="../css/share.css">
+</head>
+<body>
+<div id="app">
+    <!-- 导航栏：完全复刻 strategy.html 毛玻璃导航，逻辑、双语、登录、语言切换全部同步 -->
+    <nav class="navbar navbar-expand-lg fixed-top glass-nav">
+        <div class="container">
+            <!-- 修正：跳回首页 ../index.html -->
+            <a class="navbar-brand fw-bold text-dark" href="../index.html">
+                <i class="fa-solid fa-face-smile text-warning"></i> {{ langData.siteName }}
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="../index.html">{{ langData.navHome }}</a></li>
+                    <!-- 同文件夹跳转 ./strategy.html -->
+                    <li class="nav-item"><a class="nav-link" href="./strategy.html">{{ langData.navStrategy }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="./QA.html">{{ langData.navCommunity }}</a></li>
+                    <!-- 当前分享页激活 -->
+                    <li class="nav-item"><a class="nav-link active" href="./share.html">{{ langData.navShare }}</a></li>
+                </ul>
+                
+                <div class="d-flex align-items-center gap-3">
+                    <!-- 语言切换下拉 与首页/攻略页逻辑完全一致 -->
+                    <div class="dropdown">
+                        <button class="btn btn-sm glass-btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fa-solid fa-globe me-1"></i> {{ currentLang === 'cn' ? '中文' : 'English' }}
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" @click="switchLang('cn')">中文</a></li>
+                            <li><a class="dropdown-item" @click="switchLang('en')">English</a></li>
+                        </ul>
+                    </div>
+                    <!-- 用户区域 同文件夹user.html -->
+                    <template v-if="currentUser">
+                        <span class="me-2 text-dark small">{{ langData.welcome }}{{ currentUser.username }}</span>
+                        <a href="./user.html" class="btn rounded-circle glass-btn d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
+                            <i class="fa-solid fa-user-circle fs-5"></i>
+                        </a>
+                        <button class="btn btn-sm btn-danger px-3" @click="logout" style="border-radius: 20px;">{{ langData.logout }}</button>
+                    </template>
+                    <template v-else>
+                        <a href="./login.html" class="btn btn-primary glass-btn-primary">{{ langData.loginBtn }}</a>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 页面头部标题（原代码完全保留不修改） -->
+    <div class="page-header">
+        <h1>{{ langData.sharePageTitle }}</h1>
+        <span class="divider-line"></span>
+        <p class="page-desc">{{ langData.sharePageDesc }}</p>
+    </div>
+
+    <div class="main-container">
+        <!-- 左侧表单区域 -->
+        <div class="form-card">
+            <h2 class="card-title">
+                <span class="title-purple-line"></span>
+                {{ langData.baseInfo }}
+            </h2>
+
+            <!-- 攻略标题 -->
+            <div class="form-item">
+                <label class="form-label">{{ langData.strategyTitle }} <span class="required">*</span></label>
+                <div class="input-wrap">
+                    <input v-model="formData.title" @input="countTitleWord" type="text" class="form-input title-input" :placeholder="langData.titleTip" maxlength="50">
+                    <span class="word-count">{{titleWord}}/50</span>
+                </div>
+            </div>
+
+            <!-- 目的地 + 出行时间 双栏 -->
+            <div class="form-row-two">
+                <div class="form-item col-1">
+                    <label class="form-label">{{ langData.destTip }} <span class="required">*</span></label>
+                    <select v-model="formData.dest" class="form-select">
+                        <option value="">选择或搜索目的地</option>
+                        <option value="九寨沟">九寨沟</option>
+                        <option value="峨眉山">峨眉山</option>
+                        <option value="稻城亚丁">稻城亚丁</option>
+                        <option value="成都">成都</option>
+                    </select>
+                </div>
+                <div class="form-item col-2">
+                    <label class="form-label">{{ langData.travelDate }} <span class="required">*</span></label>
+                    <input v-model="formData.travelTime" type="date" class="form-input date-input">
+                </div>
+            </div>
+
+            <!-- 行程天数 -->
+            <div class="form-item">
+                <label class="form-label">{{ langData.travelDays }} <span class="required">*</span></label>
+                <div class="day-btn-group">
+                    <button v-for="day in dayList" :key="day.val" @click="switchDay(day.val)" class="day-btn" :class="{active:formData.day === day.val}">{{day.name}}</button>
+                </div>
+            </div>
+
+            <!-- 新增：人均消费 -->
+            <div class="form-item">
+                <label class="form-label">{{ langData.costLabel }} <span class="required">*</span></label>
+                <div class="input-wrap">
+                    <input v-model.number="formData.cost" type="number" class="form-input cost-input" :placeholder="langData.costTip" min="0" step="100">
+                    <span class="word-count">元/人</span>
+                </div>
+            </div>
+
+            <!-- 正文内容富文本 -->
+            <div class="form-item">
+                <label class="form-label">正文内容 <span class="required">*</span></label>
+                <div class="editor-wrap">
+                    <textarea v-model="formData.content" @input="countEditorWord" class="editor-textarea" :placeholder="langData.contentTip" maxlength="5000"></textarea>
+                    <span class="editor-word">{{editorWord}}/5000</span>
+                </div>
+            </div>
+
+            <!-- 上传图片区域（上限8张，新增设封面按钮） -->
+            <div class="form-item">
+                <label class="form-label">上传图片 (最多8张)</label>
+                <div class="upload-grid">
+                    <!-- 主上传框 -->
+                    <div class="upload-box main-upload" @click="triggerUpload">
+                        <input ref="fileInput" type="file" multiple accept="image/jpeg,image/png" @change="handleFileSelect" style="display:none;">
+                        <span class="upload-icon">+</span>
+                        <p class="upload-text">{{ langData.uploadTip }}</p>
+                        <p class="upload-tip">{{ langData.uploadLimit }}</p>
+                    </div>
+                    <!-- 循环渲染已上传图片，带删除+设封面 -->
+                    <div 
+                        v-for="(file, idx) in formData.uploadFiles" 
+                        :key="idx" 
+                        class="upload-preview"
+                    >
+                        <img :src="getPreviewUrl(file)" alt="">
+                        <span class="close-del" @click="removeFile(idx)">×</span>
+                        <button class="set-cover-mini" v-if="coverIndex !== idx" @click="setCover(idx)">{{langData.setCover}}</button>
+                        <span class="cover-mark" v-if="coverIndex === idx">封面</span>
+                    </div>
+                    <!-- 剩余空白占位（最多8张） -->
+                    <div 
+                        v-for="empty in 8 - formData.uploadFiles.length" 
+                        :key="'empty_'+empty" 
+                        class="upload-placeholder"
+                    ></div>
+                </div>
+            </div>
+
+            <!-- 标签选择 -->
+            <div class="form-item">
+                <label class="form-label">{{ langData.tagTip }}</label>
+                <div class="tag-wrap">
+                    <span v-for="tag in tagList" :key="tag" @click="toggleTag(tag)" class="tag" :class="{active:formData.tags.includes(tag)}">{{tag}}</span>
+                    <button class="custom-tag-btn">+ 自定义标签</button>
+                </div>
+            </div>
+
+            <!-- 推荐指数星级 -->
+            <div class="form-item">
+                <label class="form-label">推荐指数</label>
+                <div class="star-wrap">
+                    <span v-for="n in 5" :key="n" @click="setStar(n)" @mouseover="hoverStar(n)" @mouseout="resetStarHover" class="star" :class="{active:formData.star >= n}">★</span>
+                    <span class="star-tip">{{ langData.starTip }}</span>
+                </div>
+            </div>
+
+            <!-- 底部操作按钮：删除预览按钮 -->
+            <div class="bottom-btn-group">
+                <button class="save-draft-btn" @click="saveDraft">{{ langData.saveDraft }}</button>
+                <div class="right-btns">
+                    <button class="publishing-btn" @click="submitPublish">{{ langData.publishNow }}</button>
+                </div>
+            </div>
+            <p class="agreement-text">{{ langData.agreeRule }}</p>
+        </div>
+
+        <!-- 右侧边栏 -->
+        <div class="sidebar">
+            <!-- 发布小贴士 -->
+            <div class="side-card">
+                <h3 class="card-side-title">
+                    <span class="icon">📖</span>
+                    {{ langData.publishTipTitle }}
+                </h3>
+                <ul class="tip-list">
+                    <li>
+                        <span class="check">✓</span>
+                        <div>
+                            <strong>{{ langData.tip1Title }}</strong>
+                            <p>{{ langData.tip1Desc }}</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <div>
+                            <strong>{{ langData.tip2Title }}</strong>
+                            <p>{{ langData.tip2Desc }}</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <div>
+                            <strong>{{ langData.tip3Title }}</strong>
+                            <p>{{ langData.tip3Desc }}</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="check">✓</span>
+                        <div>
+                            <strong>{{ langData.tip4Title }}</strong>
+                            <p>{{ langData.tip4Desc }}</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 草稿箱 -->
+            <div class="side-card">
+                <h3 class="card-side-title">
+                    <span class="icon">📁</span>
+                    {{ langData.draftBoxTitle }}
+                </h3>
+                <p class="draft-text">{{ langData.draftLastSave }}</p>
+                <p class="draft-text">{{ langData.draftAutoSave }}</p>
+                <button class="look-draft-btn" @click="openDraft">{{ langData.viewDraft }}</button>
+            </div>
+
+            <!-- 实时发布预览效果（和第四张效果图完全一致） -->
+            <div class="side-card">
+                <h3 class="card-side-title">
+                    <span class="icon">👁</span>
+                    {{ langData.previewEffectTitle }}
+                </h3>
+                <div class="real-preview-card">
+                    <!-- 封面图 -->
+                    <div class="real-preview-img">
+                        <img v-if="coverIndex !== null && formData.uploadFiles[coverIndex]" :src="getPreviewUrl(formData.uploadFiles[coverIndex])" alt="封面">
+                        <div v-else class="empty-preview-cover">暂无图片</div>
+                        <span class="preview-heart"><i class="fa-solid fa-heart"></i></span>
+                    </div>
+                    <!-- 标题+副标题 -->
+                    <div class="real-preview-text">
+                        <h4 class="preview-title">{{ formData.title || '攻略标题' }}</h4>
+                        <p class="preview-sub">{{ formData.dest || '目的地' }} · {{ formData.day }}</p>
+                    </div>
+                    <!-- 天数+人均 -->
+                    <div class="preview-day-cost">
+                        <span><i class="fa-solid fa-clock"></i> {{ formData.day }}</span>
+                        <span class="cost-num">¥{{ formData.cost || 0 }}</span>
+                    </div>
+                    <!-- 浏览收藏数据 -->
+                    <div class="preview-stat-row">
+                        <span>👁 4900 浏览</span>
+                        <span>⭐ 750 收藏</span>
+                    </div>
+                    <!-- 标签 -->
+                    <div class="preview-tag-row">
+                        <span v-for="tag in formData.tags.slice(0,3)" :key="tag" class="preview-tag">{{tag}}</span>
+                        <span v-if="formData.tags.length === 0" class="no-tag">暂无标签</span>
+                    </div>
+                    <!-- 查看详情按钮 -->
+                    <button class="preview-detail-btn">{{ langData.viewDetail }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 返回顶部按钮 与攻略页统一 -->
+    <button class="back-to-top fixed-bottom end-0 m-4" @click="scrollTop">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+</div>
+
+<!-- 【修复核心】只保留一次Vue、删除jQuery、顺序绝对正确 -->
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/3.3.4/vue.global.prod.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<!-- JS路径修正 -->
+<script src="../js/share.js"></script>
+</body>
+</html>

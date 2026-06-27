@@ -1,0 +1,592 @@
+/* ===================== 原有攻略页面全部样式【仅删除.rank-thumb样式，其余完全保留不改动】 ===================== */
+/* 全局变量与基础重置 */
+:root {
+    --primary-color: #6c5ce7;
+    --primary-light: #ece9ff;
+    --text-main: #2d3436;
+    --text-muted: #636e72;
+    --text-light: #b2bec3;
+    --bg-light: #f5f6fa;
+    --white: #ffffff;
+    --orange: #ff7675;
+    --shadow: 0 4px 20px rgba(0, 0, 0.05);
+    --border-radius: 12px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-main);
+    line-height: 1.6;
+    padding-top: 0;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* ========== 导航栏：悬浮毛玻璃 ========== */
+.glass-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 9999;
+    background: rgba(255, 255, 255, 0.15); 
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.glass-nav .nav-link,
+.glass-nav .navbar-brand,
+.glass-nav .text-dark {
+    color: #fff !important;
+}
+.glass-nav .dropdown-toggle,
+.glass-nav .small {
+    color: #fff !important;
+}
+.glass-btn {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+}
+.nav-link.active {
+    color: #fff !important;
+    font-weight: 600;
+    border-bottom: 2px solid #fff;
+}
+/* 分享攻略导航文字强制黑色 */
+.glass-nav .nav-link.text-dark {
+    color: #000 !important;
+}
+
+/* Hero大背景Banner */
+.hero-section {
+    background: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.3)), 
+                url("../images/banner1.png");
+    background-size: cover;
+    background-position: center 25%;
+    background-repeat: no-repeat;
+    margin-top: -72px;
+    padding-top: 72px;
+    height: 620px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--white);
+}
+.hero-content {
+  margin-top: 300px;
+}
+.hero-content h1 {
+    font-size: 60px;
+    margin-bottom: 10px;
+    letter-spacing: 6px;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+    font-weight: bold;
+}
+.hero-content p {
+    font-size: 22px;
+    margin-bottom: 42px;
+    letter-spacing: 1px;
+}
+
+/* 搜索框区域 */
+.main-search-bar {
+    background: var(--white);
+    border-radius: 12px;
+    width: 860px;
+    margin: 0 auto;
+    padding: 18px 24px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+}
+.search-label {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-main);
+    white-space: nowrap;
+}
+.search-input-wrap {
+    flex: 1;
+}
+.main-search-bar input {
+    width: 100%;
+    border: 1px solid #eee;
+    outline: none;
+    padding: 13px 18px;
+    font-size: 16px;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+.main-search-bar button {
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    padding: 13px 34px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s;
+    white-space: nowrap;
+}
+.main-search-bar button:hover {
+    background-color: #5b4bc4;
+}
+/* 热门搜索标签 */
+.search-hot-tags {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+.hot-tag-title {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+.hot-tag {
+    font-size: 14px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 3px 10px;
+    border-radius: 4px;
+    transition: 0.2s;
+}
+.hot-tag:hover {
+    background: var(--primary-light);
+    color: var(--primary-color);
+}
+
+/* 主容器及分类筛选 */
+.main-container {
+    max-width: 1200px;
+    margin: -30px auto 40px;
+    padding: 0 20px;
+    position: relative;
+    z-index: 10;
+}
+.category-section {
+    background: var(--white);
+    padding: 20px 25px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+.category-title {
+    font-weight: bold;
+    color: var(--text-main);
+    white-space: nowrap;
+}
+.category-tags {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.cat-btn {
+    border: none;
+    background: #f1f2f6;
+    padding: 8px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+.cat-btn:hover, .cat-btn.active {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+/* 两栏布局 */
+.content-layout {
+    display: flex;
+    gap: 30px;
+}
+.left-content {
+    flex: 3;
+}
+.sidebar {
+    flex: 1;
+}
+
+.section-title {
+    font-size: 20px;
+    margin-bottom: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+/* 今日推荐轮播样式 */
+.recommend-section {
+    margin-bottom: 35px;
+}
+.recommend-carousel-wrap {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--border-radius);
+}
+.recommend-carousel-track {
+    display: flex;
+    transition: transform 0.5s ease;
+}
+.recommend-slide-item {
+    min-width: 100%;
+    padding: 0 8px;
+}
+.recommend-card {
+    height: 220px;
+    background: linear-gradient(135deg, #2c3e50, #3498db);
+    border-radius: var(--border-radius);
+    padding: 30px;
+    color: var(--white);
+    position: relative;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    cursor: pointer;
+}
+.recommend-card:hover {
+    filter: brightness(1.08);
+}
+.rec-badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: var(--orange);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+.rec-info h3 {
+    font-size: 26px;
+    margin-bottom: 8px;
+}
+.rec-desc {
+    opacity: 0.8;
+    margin-bottom: 25px;
+}
+.rec-meta {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+.rec-meta .price {
+    font-size: 20px;
+    font-weight: bold;
+    color: #ffeaa7;
+}
+.view-detail-btn {
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    background: var(--white);
+    color: var(--primary-color);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+/* 轮播左右箭头 */
+.carousel-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.8);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    cursor: pointer;
+}
+.arrow-left { left: 12px; }
+.arrow-right { right: 12px; }
+/* 底部圆点容器 */
+.carousel-dots-wrap {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 14px;
+}
+.carousel-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.carousel-dot.active {
+    background: var(--primary-color);
+    width: 20px;
+    border-radius: 10px;
+}
+
+/* 攻略卡片网格 */
+.strategy-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+}
+.strategy-card {
+    background: var(--white);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+.strategy-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+.card-img-placeholder {
+    height: 240px;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #dfe6e9;
+}
+.card-top-tag {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(255, 118, 117, 0.9);
+    color: var(--white);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+}
+.card-fav {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(255, 255, 255, 0.8);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+.card-content {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+.card-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+.card-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 15px;
+}
+.card-plan-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 15px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f1f2f6;
+}
+.card-plan-details .price {
+    color: var(--orange);
+    font-weight: bold;
+}
+.card-stats {
+    display: flex;
+    gap: 15px;
+    font-size: 12px;
+    color: var(--text-light);
+}
+.card-tags {
+    margin-top: 12px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.tag-span {
+    background: var(--bg-light);
+    color: var(--text-muted);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+.view-strategy-btn {
+    margin-top: 15px;
+    width: 100%;
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+    border: none;
+    padding: 8px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.view-strategy-btn:hover {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+.load-more-container {
+    text-align: center;
+    margin-top: 30px;
+}
+.load-more-btn {
+    background: var(--white);
+    border: 1px solid #dee2e6;
+    padding: 10px 40px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+/* 侧边栏通用 */
+.sidebar-card {
+    background: var(--white);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 25px;
+}
+.sidebar-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 2px solid var(--bg-light);
+    padding-bottom: 8px;
+}
+.rank-list {
+    list-style: none;
+}
+/* 修改：删除rank-thumb后，调整li内间距 */
+.rank-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+.rank-num {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 50%;
+    background: #dfe6e9;
+}
+.rank-1 { background-color: #ff7675; color: white; }
+.rank-2 { background-color: #ffb8b8; color: white; }
+.rank-3 { background-color: #ffeaa7; color: white; }
+.rank-detail h4 {
+    font-size: 14px;
+    font-weight: 500;
+}
+.rank-detail span {
+    font-size: 11px;
+    color: var(--text-light);
+}
+.more-rank {
+    text-align: center;
+    font-size: 13px;
+    color: var(--primary-color);
+    margin-top: 10px;
+}
+.tips-list {
+    padding-left: 15px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+.tips-list li {
+    margin-bottom: 10px;
+}
+.tips-illustration {
+    font-size: 40px;
+    text-align: right;
+    opacity: 0.3;
+    margin-top: -10px;
+}
+.share-card {
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    color: var(--white);
+    text-align: center;
+}
+.share-card h3 { font-size: 18px; margin-bottom: 5px; }
+.share-card p { font-size: 13px; opacity: 0.8; margin-bottom: 15px; }
+.share-btn {
+    background: var(--white);
+    color: var(--primary-color);
+    border: none;
+    padding: 8px 25px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* ========== 修改后的回到顶部按钮样式：左下角圆形图标按钮 ========== */
+.back-to-top {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--white);
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--primary-color);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    z-index: 999;
+}
+.back-to-top:hover {
+    background: var(--primary-color);
+    color: #fff;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(108, 92, 231, 0.25);
+}
+.back-to-top:active {
+    transform: translateY(0);
+}

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>攻略中心</title>
+    <!-- 公共CDN -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- 攻略独立CSS 路径修正 -->
+    <link rel="stylesheet" href="../css/strategy.css">
+</head>
+<body>
+<div id="app">
+    <!-- 导航栏【已完成修改：分享攻略和其余菜单样式完全统一】 -->
+    <nav class="navbar navbar-expand-lg fixed-top glass-nav">
+        <div class="container">
+            <!-- 首页路径修正 ../index.html -->
+            <a class="navbar-brand fw-bold text-dark" href="../index.html">
+                <i class="fa-solid fa-face-smile text-warning"></i> 攻略中心
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="../index.html">{{ langData.navHome }}</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="./strategy.html">{{ langData.navStrategy }}</a></li>
+                    <!-- QA页面同文件夹 ./QA.html -->
+                    <li class="nav-item"><a class="nav-link" href="./QA.html">{{ langData.navCommunity }}</a></li>
+                    <!-- 分享页同文件夹 ./share.html -->
+                    <li class="nav-item"><a class="nav-link" href="./share.html" target="_blank">{{ langData.navShare }}</a></li>
+                </ul>
+                
+                <div class="d-flex align-items-center gap-3">
+                    <!-- 语言切换下拉 与首页逻辑完全一致 -->
+                    <div class="dropdown">
+                        <button class="btn btn-sm glass-btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fa-solid fa-globe me-1"></i> {{ currentLang === 'cn' ? '中文' : 'English' }}
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" @click="switchLang('cn')">中文</a></li>
+                            <li><a class="dropdown-item" @click="switchLang('en')">English</a></li>
+                        </ul>
+                    </div>
+                    <!-- 用户页面 ./user.html -->
+                    <template v-if="currentUser">
+                        <span class="me-2 text-dark small">{{ langData.welcome }}{{ currentUser.username }}</span>
+                        <a href="./user.html" class="btn rounded-circle glass-btn d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
+                            <i class="fa-solid fa-user-circle fs-5"></i>
+                        </a>
+                        <button class="btn btn-sm btn-danger px-3" @click="logout" style="border-radius: 20px;">{{ langData.logout }}</button>
+                    </template>
+                    <template v-else>
+                        <a href="./login.html" class="btn btn-primary glass-btn-primary">{{ langData.loginBtn }}</a>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Banner搜索区域 -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <div class="main-search-bar">
+                <span class="search-label">{{ langData.searchLabel }}</span>
+                <div class="search-input-wrap">
+                    <input type="text" v-model="searchKeyword" class="form-control" :placeholder="langData.searchPlaceholder">
+                </div>
+                <button id="strategySearchBtn" @click="doSearch">{{ langData.searchBtn }}</button>
+                <div class="search-hot-tags">
+                    <span class="hot-tag-title">{{ langData.hotTagTitle }}：</span>
+                    <span class="hot-tag" v-for="tag in hotTags" @click="searchKeyword=tag">{{ tag }}</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main class="main-container">
+        <section class="category-section">
+            <span class="category-title">{{ langData.categoryTitle }}</span>
+            <div class="category-tags" id="categoryTagsContainer">
+                <button 
+                    v-for="cat in categoryList" 
+                    class="cat-btn" 
+                    :class="{active:currentCat === cat.key}"
+                    @click="currentCat = cat.key"
+                    data-category="全部">
+                    {{ cat.label }}
+                </button>
+            </div>
+        </section>
+
+        <div class="content-layout">
+            <div class="left-content">
+                <!-- 今日推荐轮播 -->
+                <section class="recommend-section">
+                    <h2 class="section-title">⭐ {{ langData.recTitle }}</h2>
+                    <div class="recommend-carousel-wrap">
+                        <div class="recommend-carousel-track" :style="{transform:`translateX(-${slideIndex * 100}%)`}">
+                            <div class="recommend-slide-item" v-for="item in recommendList" :key="item.id">
+                                <div class="recommend-card click-card" @click="openModal(item)">
+                                    <div class="rec-badge">{{ item.badge || langData.defaultRec }}</div>
+                                    <div class="rec-info">
+                                        <h3>{{ item.title[currentLang] }}</h3>
+                                        <p class="rec-desc">{{ item.subTitle[currentLang] }}</p>
+                                        <div class="rec-meta">
+                                            <span>⏱️ {{ item.days }}</span>
+                                            <span class="price">¥ {{ item.budget }}</span>
+                                        </div>
+                                        <button class="view-detail-btn" @click.stop="openModal(item)">{{ langData.viewDetail }}</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="carousel-arrow arrow-left" @click="prevSlide">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <button class="carousel-arrow arrow-right" @click="nextSlide">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="carousel-dots-wrap">
+                        <span 
+                            v-for="(_,idx) in recommendList" 
+                            class="carousel-dot" 
+                            :class="{active:slideIndex === idx}"
+                            @click="slideIndex = idx">
+                        </span>
+                    </div>
+                </section>
+
+                <section class="strategy-list-section">
+                    <h2 class="section-title">🔥 {{ langData.strategyHotTitle }}</h2>
+                    <div class="strategy-grid">
+                        <div 
+                            v-for="item in filterStrategy" 
+                            class="strategy-card" 
+                            :key="item.id"
+                            @click="openModal(item)">
+                            <div class="card-img-placeholder" :style="`background-image:url(${item.imgSrc});`">
+                                <div v-if="item.badge" class="card-top-tag">💥 {{ item.badge }}</div>
+                                <div class="card-fav">❤️</div>
+                            </div>
+                            <div class="card-content">
+                                <h3 class="card-title">{{ item.title[currentLang] }}</h3>
+                                <p class="card-sub">{{ item.subTitle[currentLang] }}</p>
+                                <div class="card-plan-details">
+                                    <span>⏱️ {{ item.days }}</span>
+                                    <span class="price">¥{{ item.budget }}</span>
+                                </div>
+                                <div class="card-stats">
+                                    <span>👁️ {{ item.views }} {{ langData.viewUnit }}</span>
+                                    <span>⭐ {{ item.collections }} {{ langData.collectUnit }}</span>
+                                </div>
+                                <div class="card-tags">
+                                    <span class="tag-span" v-for="t in item.tags">{{ t[currentLang] }}</span>
+                                </div>
+                                <button class="view-strategy-btn" @click.stop="openModal(item)">{{ langData.viewDetail }}</button>
+                            </div>
+                        </div>
+                        <!-- 无数据提示 -->
+                        <div v-if="filterStrategy.length === 0" style="grid-column: span 2; text-align: center; padding: 40px; background: #fff; border-radius: 12px;">
+                            <p style="font-size:32px;">🔍</p>
+                            <p>{{ langData.noDataTip }}</p>
+                        </div>
+                    </div>
+                    <div class="load-more-container">
+                        <button class="load-more-btn">{{ langData.loadMore }} <span>∨</span></button>
+                    </div>
+                </section>
+            </div>
+
+            <aside class="sidebar">
+                <div class="sidebar-card rank-card">
+                    <h3 class="sidebar-title">👑 {{ langData.rankTitle }}</h3>
+                    <ul class="rank-list">
+                        <!-- 改动点：删除<div class="rank-thumb"></div>蓝色方块 -->
+                        <li v-for="(item,idx) in top5List" class="rank-li click-card" @click="openModal(item)">
+                            <span class="rank-num" :class="`rank-${idx+1}`">{{ idx+1 }}</span>
+                            <div class="rank-detail">
+                                <h4>{{ item.title[currentLang] }}</h4>
+                                <span>🔥 {{ item.views }}</span>
+                            </div>
+                        </li>
+                    </ul>
+                    <div class="more-rank"><a href="#">{{ langData.fullRank }} &gt;</a></div>
+                </div>
+
+                <div class="sidebar-card tips-card">
+                    <h3 class="sidebar-title">💡 {{ langData.tipsTitle }}</h3>
+                    <ul class="tips-list">
+                        <li v-for="tip in tipsList">{{ tip[currentLang] }}</li>
+                    </ul>
+                    <div class="tips-illustration">📍🗺️</div>
+                </div>
+
+                <div class="sidebar-card share-card">
+                    <h3>{{ langData.shareTitle }}</h3>
+                    <p>{{ langData.shareDesc }}</p>
+                    <!-- 同文件夹share.html -->
+                    <button class="share-btn" onclick="window.open('./share.html','_blank')">{{ langData.shareBtn }} <span>🚀</span></button>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- 攻略详情弹窗Modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content glass-card">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">{{ langData.modalTitle }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-img-box mb-4">
+                        <img v-if="currentItem" :src="currentItem.imgSrc" class="w-100 rounded" style="max-height:360px;object-fit:cover;">
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3" v-if="currentItem">
+                        <div>
+                            <h4 id="modalTitle">{{ currentItem.title[currentLang] }}</h4>
+                            <p class="text-secondary mb-0">{{ currentItem.subTitle[currentLang] }}</p>
+                        </div>
+                        <div class="d-flex gap-3 align-items-center">
+                            <span class="badge bg-primary fs-6">{{ currentItem.days }}</span>
+                            <span class="text-danger fs-5 fw-bold">¥{{ currentItem.budget }}</span>
+                        </div>
+                    </div>
+                    <div class="mb-4" v-if="currentItem">
+                        <button 
+                            class="btn btn-outline-primary" 
+                            :class="isCollected ? 'btn-danger' : ''"
+                            @click="toggleCollect">
+                            <i class="fa-solid fa-heart me-1"></i> 
+                            {{ isCollected ? langData.collectedTxt : langData.collectTxt }} 
+                            (<span>{{ collectNum }}</span>)
+                        </button>
+                    </div>
+                    <hr>
+                    <div class="mb-4" v-if="currentItem">
+                        <h6>{{ langData.routeIntro }}</h6>
+                        <p id="modalDesc">{{ currentItem.desc[currentLang] }}</p>
+                    </div>
+                    <hr>
+                    <div>
+                        <h6>{{ langData.commentArea }}</h6>
+                        <div id="commentList" class="mb-3" style="max-height:200px;overflow-y:auto;">
+                            <div v-for="c in commentList" class="comment-item">
+                                <div class="fw-bold text-primary">{{ c.user }}</div>
+                                <div>{{ c.text }}</div>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <textarea v-model="commentText" class="form-control" rows="2" :placeholder="langData.commentPlaceholder"></textarea>
+                            <button class="btn btn-primary ms-2" @click="submitComment">{{ langData.submitComment }}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 回到顶部按钮（左下角圆形） -->
+    <button class="back-to-top fixed-bottom start-0 m-4" @click="scrollTop">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+</div>
+
+<!-- JS CDN 顺序和首页保持一致 -->
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/3.3.4/vue.global.prod.js"></script>
+<!-- JS路径修正 -->
+<script src="../js/strategy.js"></script>
+</body>
+</html>

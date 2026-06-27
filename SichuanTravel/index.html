@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>巴适游四川</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    <style>
+        /* 首页导航激活下划线样式 */
+        .nav-link.active {
+            font-weight: 700 !important;
+            position: relative;
+        }
+        .nav-link.active::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: -6px;
+            width: 100%;
+            height: 3px;
+            background-color: #000;
+        }
+    </style>
+    <!-- 首页在根目录，css同级直接写 ../css → 改为 ./css -->
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <div id="app">
+        <nav class="navbar navbar-expand-lg fixed-top glass-nav">
+            <div class="container">
+                <!-- 【改动1：替换笑脸图标为四川地标熊猫图标】 -->
+                <a class="navbar-brand fw-bold text-dark" href="#">
+                    <i class="fa-solid fa-paw text-success me-2"></i> 巴适游四川
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#">{{ langData.navHome }}</a>
+                        </li>
+                        <li class="nav-item">
+                            <!-- 跳转pages内页面：./pages/xxx.html -->
+                            <a class="nav-link" href="./pages/strategy.html" target="_blank">{{ langData.navStrategy }}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="./pages/QA.html" target="_blank">{{ langData.navCommunity }}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="./pages/share.html" target="_blank">{{ langData.navShare }}</a>
+                        </li>
+                    </ul>
+                    
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="dropdown">
+                            <button class="btn btn-sm glass-btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fa-solid fa-globe me-1"></i> {{ currentLang === 'cn' ? '中文' : 'English' }}
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" @click="switchLang('cn')">中文</a></li>
+                                <li><a class="dropdown-item" @click="switchLang('en')">English</a></li>
+                            </ul>
+                        </div>
+
+                        <template v-if="currentUser">
+                            <span class="me-2 text-dark small">{{ langData.welcome }}{{ currentUser.username }}</span>
+                            <a href="./pages/user.html" class="btn rounded-circle glass-btn d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
+                                <i class="fa-solid fa-user-circle fs-5"></i>
+                            </a>
+                            <button class="btn btn-sm btn-danger px-3" @click="logout" style="border-radius: 20px;">{{ langData.logout }}</button>
+                        </template>
+                       <template v-else>
+                            <a href="./pages/login.html" class="btn btn-primary glass-btn-primary">{{ langData.loginBtn }}</a>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content glass-card">
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title fw-bold text-dark">{{ isRegisterMode ? langData.registerTitle : langData.loginTitle }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form @submit.prevent="handleAuth">
+                            <div class="mb-3">
+                                <label class="form-label text-dark small fw-bold">{{ langData.accountLabel }}</label>
+                                <input type="text" v-model="authForm.username" class="form-control glass-input" :placeholder="langData.accountPlaceholder" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-dark small fw-bold">{{ langData.pwdLabel }}</label>
+                                <input type="password" v-model="authForm.password" class="form-control glass-input" :placeholder="langData.pwdPlaceholder" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 glass-btn-primary py-2 fw-bold">
+                                {{ isRegisterMode ? langData.registerSubmit : langData.loginSubmit }}
+                            </button>
+                            <div class="text-end mt-3">
+                                <a href="#" @click.prevent="isRegisterMode = !isRegisterMode" class="text-decoration-none small text-secondary">
+                                    {{ isRegisterMode ? langData.haveAccountTip : langData.noAccountTip }}
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <header id="hero" class="carousel slide" data-bs-ride="carousel" data-aos="fade-in">
+            <div class="carousel-indicators">
+                <button type="button" data-bs-target="#hero" data-bs-slide-to="0" class="active" aria-current="true"></button>
+                <button type="button" data-bs-target="#hero" data-bs-slide-to="1"></button>
+                <button type="button" data-bs-target="#hero" data-bs-slide-to="2"></button>
+            </div>
+            <div class="carousel-inner">
+                <!-- 首页图片路径 ./images/ -->
+                <div class="carousel-item active">
+                    <img src="./images/banner1.png" class="d-block w-100" :alt="langData.bannerAlt1">
+                </div>
+                <div class="carousel-item">
+                    <img src="./images/banner2.png" class="d-block w-100" :alt="langData.bannerAlt2">
+                </div>
+                <div class="carousel-item">
+                    <img src="./images/banner3.png" class="d-block w-100" :alt="langData.bannerAlt3">
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#hero" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">{{ langData.slidePrev }}</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#hero" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">{{ langData.slideNext }}</span>
+            </button>
+        </header>
+
+        <main class="container my-5">
+            <!-- 【改动2：顶部功能图标全部更换+hover跳转优化，图标换成文旅风】 -->
+            <div class="glass-card d-flex justify-content-around align-items-center py-4 px-3">
+                <!-- 热门攻略 -->
+                <div class="nav-item text-center p-3 rounded-3 w-100 mx-2 hover-icon-box" @click="clickHot">
+                    <div class="fs-1 text-primary mb-2"><i class="fa-solid fa-map-location-dot"></i></div>
+                    <div class="fw-medium">{{ langData.menuHot }}</div>
+                </div>
+                <!-- 分享攻略 -->
+                <div class="nav-item text-center p-3 rounded-3 w-100 mx-2 hover-icon-box" @click="clickShare">
+                    <div class="fs-1 text-warning mb-2"><i class="fa-solid fa-paper-plane"></i></div>
+                    <div class="fw-medium">{{ langData.menuShare }}</div>
+                </div>
+                <!-- 旅行地图 -->
+                <div class="nav-item text-center p-3 rounded-3 w-100 mx-2 hover-icon-box" @click="jumpTravelMap">
+                    <div class="fs-1 text-info mb-2"><i class="fa-solid fa-earth-asia"></i></div>
+                    <div class="fw-medium">{{ langData.menuMap }}</div>
+                </div>
+                <!-- 智能问答 -->
+                <div class="nav-item text-center p-3 rounded-3 w-100 mx-2 hover-icon-box" @click="jumpQA">
+                    <div class="fs-1 text-success mb-2"><i class="fa-solid fa-comments"></i></div>
+                    <div class="fw-medium">{{ langData.menuCommunity }}</div>
+                </div>
+                <!-- 我的收藏 -->
+                <div class="nav-item text-center p-3 rounded-3 w-100 mx-2 hover-icon-box" @click="jumpMyCollect">
+                    <div class="fs-1 text-danger mb-2"><i class="fa-solid fa-star"></i></div>
+                    <div class="fw-medium">{{ langData.menuCollect }}</div>
+                </div>
+            </div>
+
+           <div class="row mb-5 g-4">
+    <!-- 左侧视频：加宽占比，缩小留白 col-md-7 改为 col-md-7 → col-md-7不变，收紧内边距消除多余空白 -->
+    <div class="col-md-7" data-aos="fade-right">
+        <div class="glass-card p-2 h-100 d-flex flex-column justify-content-center align-items-center">
+            <h4 class="mb-3 fw-bold text-dark fs-5">{{ langData.videoTitle }}</h4>
+            <div class="ratio ratio-16x9 w-100 rounded overflow-hidden shadow">
+                <iframe src="https://player.bilibili.com/player.html?bvid=BV1FkmbBPEEM&page=1&high_quality=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+            </div>
+        </div>
+    </div>
+    <!-- 右侧简介全面美化，优化行距、缩进、卡片细节 -->
+    <div class="col-md-5" data-aos="fade-left">
+        <div class="glass-card p-4 h-100 d-flex flex-column">
+            <!-- 标题美化 -->
+            <div class="d-flex align-items-center mb-3 pb-3 border-bottom border-secondary-subtle">
+                <div class="bg-success bg-opacity-10 p-2 rounded me-3">
+                    <i class="fa-solid fa-mountain-city text-success fs-4"></i>
+                </div>
+                <h4 class="mb-0 fw-bold text-dark">{{ langData.introTitle }}</h4>
+            </div>
+            <!-- 正文优化排版，行距、间距更舒适 -->
+            <div class="text-secondary flex-grow-1 overflow-auto small" style="line-height: 1.9;">
+                <p class="mb-3" style="text-indent: 2em;margin-bottom:16px;">
+                    {{ langData.introText1 }}
+                </p>
+                <p class="mb-3" style="text-indent: 2em;margin-bottom:16px;">
+                    {{ langData.introText2 }}
+                </p>
+                <p style="text-indent: 2em;">
+                    巴蜀文化源远流长，三星堆、金沙古蜀文明惊艳世界，川菜、川剧、茶馆文化融入日常。成都安逸闲适，川西高原辽阔壮美，甘孜、阿坝藏区风情浓郁，乐山、眉山底蕴厚重，无论人文历史、自然风光还是烟火美食，四川都能带给旅行者独一无二的体验。
+                </p>
+            </div>
+            <!-- 底部标签美化圆角配色 -->
+            <div class="d-flex gap-3 mt-4 pt-3 border-top border-secondary-subtle flex-wrap">
+                <span class="px-4 py-2 bg-success bg-opacity-10 rounded-pill text-success fw-medium small">
+                    <i class="fa-solid fa-calendar-check me-2"></i>{{ langData.travelSeason }}
+                </span>
+                <span class="px-4 py-2 bg-danger bg-opacity-10 rounded-pill text-danger fw-medium small">
+                    <i class="fa-solid fa-heart me-2"></i>{{ langData.slogan }}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+            <section class="mb-5 glass-card p-4" data-aos="fade-up">
+                <h3 class="text-center mb-4 fw-bold text-dark">{{ langData.mapTitle }}</h3>
+                <div class="row g-4">
+                    <div class="col-lg-7">
+                        <div id="echarts-container" style="width: 100%; height: 520px;"></div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="p-4 border rounded h-100 bg-white bg-opacity-50 shadow-sm" style="backdrop-filter: blur(5px); border-radius: 15px;">
+                            <h4 class="fw-bold text-primary border-bottom pb-2 mb-3">
+                                <i class="fa-solid fa-location-dot me-2 text-danger"></i>{{ getCityName(selectedCity) }} · {{ langData.cityCard }}
+                            </h4>
+                            <div v-if="cityInfoDict[currentLang][selectedCity]">
+                                <div class="mb-3 overflow-hidden rounded shadow-sm" style="height: 180px; width: 100%;">
+                                    <img :src="cityInfoDict[currentLang][selectedCity].img" :alt="getCityName(selectedCity)" class="w-100 h-100" style="object-fit: cover;">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <h6 class="fw-bold text-success mb-2"><i class="fa-solid fa-camera me-2"></i>{{ langData.scenicLabel }}</h6>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <span v-for="scenic in cityInfoDict[currentLang][selectedCity].scenic" class="badge bg-success bg-opacity-70 text-dark fw-normal px-3 py-2" style="border-radius: 20px;">
+                                            {{ scenic }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <h6 class="fw-bold text-warning text-dark-50 mb-2"><i class="fa-solid fa-utensils me-2 text-warning"></i>{{ langData.foodLabel }}</h6>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <span v-for="food in cityInfoDict[currentLang][selectedCity].food" class="badge bg-warning bg-opacity-50 text-dark fw-normal px-3 py-2" style="border-radius: 20px;">
+                                            {{ food }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <h6 class="fw-bold text-info mb-2"><i class="fa-solid fa-compass me-2"></i>{{ langData.routeLabel }}</h6>
+                                    <p class="small text-secondary bg-light p-3 rounded border-start border-info border-3 mb-0" style="line-height: 1.6;">
+                                        {{ cityInfoDict[currentLang][selectedCity].route }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div v-else class="text-center text-muted py-5">
+                                <i class="fa-solid fa-map-pin fa-3x mb-3 text-secondary opacity-50"></i>
+                                <p>{{ langData.mapTipLine1 }}<br>{{ langData.mapTipLine2 }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 【改动4：热门景点卡片样式升级，中英文描述文案加长，卡片美化】 -->
+            <section class="mb-5" data-aos="fade-up">
+                <h3 class="text-center mb-5 fw-bold text-dark section-title">{{ langData.spotTitle }}</h3>
+                <div class="row g-4">
+                    <div class="col-md-3" v-for="spot in spotList" :key="spot.id">
+                        <div class="card glass-card h-100 position-relative spot-card">
+                            <button class="btn position-absolute top-0 end-0 m-2 text-danger bg-white rounded-circle shadow-sm heart-btn" 
+                                    @click="toggleFavorite(spot)" style="z-index: 10; width: 38px; height: 38px; padding: 0;">
+                                <i :class="isFavorite(spot) ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
+                            </button>
+                            <img :src="spot.img" class="card-img-top spot-img" :alt="spot.name">
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold text-dark mb-2">{{ spot.name }}</h5>
+                                <p class="card-text text-muted small" style="line-height:1.7;">{{ spot.desc }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- AI助手悬浮按钮 点击跳转QA -->
+        <div class="ai-assistant-btn" @click="jumpQA" :title="langData.aiBtnTip">
+            <i class="fa-solid fa-robot"></i>
+        </div>
+
+        <footer class="custom-dark-footer pt-5 pb-4 mt-5">
+            <div class="container">
+                <div class="row g-4 justify-content-between">
+                    <div class="col-md-4">
+                        <h5 class="fw-bold text-white mb-3">{{ langData.siteName }}</h5>
+                        <p class="custom-footer-muted small">{{ langData.footerSlogan }}</p>
+                    </div>
+                    <div class="col-md-2">
+                        <h6 class="fw-bold text-white mb-3">{{ langData.footerQuickNav }}</h6>
+                        <ul class="list-unstyled small">
+                            <li><a href="#" class="text-decoration-none custom-footer-muted">{{ langData.navHome }}</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-2">
+                        <h6 class="fw-bold text-white mb-3">{{ langData.footerDestTitle }}</h6>
+                        <ul class="list-unstyled small custom-footer-muted">
+                            <li class="mb-2">{{ langData.destJiuzhaigou }}</li>
+                            <li class="mb-2">{{ langData.destEmei }}</li>
+                            <li class="mb-2">{{ langData.destYading }}</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-3">
+                        <h6 class="fw-bold text-white mb-3">{{ langData.footerContactTitle }}</h6>
+                        <ul class="list-unstyled small custom-footer-muted">
+                            <li class="mb-2">{{ langData.footerTel }}：400-888-8888</li>
+                            <li class="mb-2">{{ langData.footerMail }}：service@bashisichuan.com</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-1 text-md-end text-center">
+                        <div class="qrcode-wrapper mb-2 d-inline-block"></div>
+                        <p class="custom-footer-muted text-nowrap mt-1 mb-0" style="font-size: 11px;">{{ langData.footerQrTip }}</p>
+                    </div>
+                </div>
+                <hr class="custom-footer-hr my-4">
+                <div class="row">
+                    <div class="col text-center custom-footer-muted small">
+                        <p class="mb-0">© 2026 {{ langData.siteName }} - {{ langData.footerCopyright }} | {{ langData.icpText }}</p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div> 
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/3.3.4/vue.global.prod.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+    <!-- 首页JS路径 ./js/main.js -->
+    <script src="./js/main.js"></script>
+</body>
+</html>
