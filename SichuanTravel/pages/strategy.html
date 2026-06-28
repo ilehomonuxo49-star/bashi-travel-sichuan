@@ -65,7 +65,12 @@
             <div class="main-search-bar">
                 <span class="search-label">{{ langData.searchLabel }}</span>
                 <div class="search-input-wrap">
-                    <input type="text" v-model="searchKeyword" class="form-control" :placeholder="langData.searchPlaceholder">
+                    <!-- 新增回车触发搜索 -->
+                    <input type="text" 
+                           v-model="searchKeyword" 
+                           class="form-control" 
+                           :placeholder="langData.searchPlaceholder"
+                           @keyup.enter="doSearch">
                 </div>
                 <button id="strategySearchBtn" @click="doSearch">{{ langData.searchBtn }}</button>
                 <div class="search-hot-tags">
@@ -80,13 +85,14 @@
         <section class="category-section">
             <span class="category-title">{{ langData.categoryTitle }}</span>
             <div class="category-tags" id="categoryTagsContainer">
+                <!-- 核心修改：@click绑定changeCat方法，点击自动滚动到攻略列表 -->
                 <button 
                     v-for="cat in categoryList" 
                     class="cat-btn" 
                     :class="{active:currentCat === cat.key}"
-                    @click="currentCat = cat.key"
+                    @click="changeCat(cat.key)"
                     data-category="全部">
-                    {{ cat.label }}
+                    {{ cat.key === 'all' ? langData.allCat : cat.label }}
                 </button>
             </div>
         </section>
@@ -130,7 +136,8 @@
                     </div>
                 </section>
 
-                <section class="strategy-list-section">
+                <!-- 搜索滚动目标锚点 -->
+                <section class="strategy-list-section" id="strategyListAnchor">
                     <h2 class="section-title">🔥 {{ langData.strategyHotTitle }}</h2>
                     <div class="strategy-grid">
                         <div 
@@ -205,9 +212,9 @@
         </div>
     </main>
 
-    <!-- 攻略详情弹窗Modal -->
+    <!-- 攻略详情弹窗Modal（修复导航遮挡：增加margin-top） -->
     <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-top-fix">
             <div class="modal-content glass-card">
                 <div class="modal-header border-0">
                     <h5 class="modal-title fw-bold">{{ langData.modalTitle }}</h5>
