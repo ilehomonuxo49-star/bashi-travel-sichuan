@@ -3,10 +3,8 @@ document.addEventListener('DOMContentLoaded', function() {
     createApp({
         data() {
             return {
-                // 语言持久化 与首页完全统一
                 currentLang: localStorage.getItem('siteLang') || 'cn',
                 langData: {},
-                // 全局完整双语字典【和index.html的langDict完全同步，新增攻略专属词条】
                 langDict: {
                     cn: {
                         siteName: "巴适游四川",
@@ -17,7 +15,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         welcome: "欢迎，",
                         logout: "退出",
                         loginBtn: "登录/注册",
-                        // 首页通用文案
                         bannerAlt1: "大美四川",
                         bannerAlt2: "烟火成都",
                         bannerAlt3: "绝美川蜀",
@@ -35,7 +32,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         footerMail: "邮箱",
                         footerQrTip: "关注我们获取更多旅行资讯",
                         footerCopyright: "探索四川的奥秘，遇见更好的自己",
-                        // ==========攻略页面专属翻译 ==========
                         strategyTitle: "旅游攻略中心",
                         searchLabel: "想去哪儿？",
                         searchPlaceholder: "🔍 搜索目的地、景点或攻略",
@@ -92,7 +88,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         footerMail: "Email",
                         footerQrTip: "Scan QR to get travel news",
                         footerCopyright: "Discover the charm of Sichuan, find a better you",
-                        // 攻略英文
                         strategyTitle: "Travel Guide Center",
                         searchLabel: "Where to go?",
                         searchPlaceholder: "🔍 Search spots & travel guides",
@@ -124,23 +119,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         backTop: "Back to Top"
                     }
                 },
-                // 用户登录状态 与首页同步localStorage
                 currentUser: JSON.parse(localStorage.getItem('currentUser')) || null,
-                // 轮播下标
                 slideIndex: 0,
                 autoTimer: null,
-                // 搜索&分类筛选
                 searchKeyword: "",
                 currentCat: "all",
-                // 当前打开攻略弹窗数据
                 currentItem: null,
                 isCollected: false,
                 collectNum: 0,
                 commentText: "",
                 commentList: [],
-                // 热门搜索标签
                 hotTags: ["九寨沟","峨眉山","乐山大佛","稻城亚丁","都江堰","成都"],
-                // 分类列表（双语label）
                 categoryList: [
                     {key:"all", label:"allCat"},
                     {key:"成都", label:"成都"},
@@ -152,7 +141,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     {key:"美食", label:"美食"},
                     {key:"自驾游", label:"自驾游"}
                 ],
-                // 攻略主数据 全部标题/描述/标签做双语
                 strategyData: [
                     {
                         id: 1,
@@ -304,11 +292,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
         computed: {
-            // 自动匹配语言文本
             langData() {
                 return this.langDict[this.currentLang];
             },
-            // 筛选后的攻略列表（包含用户刚发布的新攻略）
             filterStrategy() {
                 return this.strategyData.filter(item => {
                     const matchCat = this.currentCat === "all" || item.categories.includes(this.currentCat);
@@ -319,15 +305,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     return matchCat && matchKw;
                 })
             },
-            // 轮播前3条推荐
             recommendList() {
                 return this.strategyData.slice(0,3);
             },
-            // 排行榜前5
             top5List() {
                 return [...this.strategyData].sort((a,b)=>b.views - a.views).slice(0,5);
             },
-            // 双语小贴士
             tipsList() {
                 const base = [
                     {cn:"四川昼夜温差大，记得带外衣",en:"Big temperature gap, bring jacket"},
@@ -339,35 +322,44 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
         mounted() {
-            // 语言初始化
             this.langData = this.langDict[this.currentLang];
-            // 读取分享页发布的新攻略并追加到列表
             const newGuideStr = localStorage.getItem('newPublishGuide');
             if(newGuideStr) {
                 const newGuide = JSON.parse(newGuideStr);
-                // 追加到数组头部，最新发布排在最前
+                // 兜底默认图片，无封面自动填充宽窄巷子
+                if(!newGuide.imgSrc || newGuide.imgSrc === "") {
+                    newGuide.imgSrc = "../images/jingdian/kuanzhaixiangzi1.jpg";
+                }
                 this.strategyData.unshift(newGuide);
-                // 读取完成后清除本地存储，避免刷新重复添加
                 localStorage.removeItem('newPublishGuide');
             }
-            // 自动轮播
             this.startCarousel();
-            // 弹窗实例
             this.modal = new bootstrap.Modal(document.getElementById('detailModal'), {backdrop:true});
         },
         methods: {
-            // 语言切换 完全和首页逻辑统一
+            // 封装滚动到攻略列表公共方法，搜索/分类共用
+            scrollToStrategyList() {
+                this.$nextTick(() => {
+                    const anchorDom = document.getElementById('strategyListAnchor');
+                    if(anchorDom) {
+                        anchorDom.scrollIntoView({behavior:"smooth", block:"start"});
+                    }
+                })
+            },
+            // 新增：切换分类并滚动到卡片区域
+            changeCat(key) {
+                this.currentCat = key;
+                this.scrollToStrategyList();
+            },
             switchLang(lang) {
                 this.currentLang = lang;
                 localStorage.setItem('siteLang', lang);
                 this.langData = this.langDict[lang];
-                // 重置轮播下标防止错位
                 this.slideIndex = 0;
                 this.$nextTick(()=>{
                     this.startCarousel();
                 })
             },
-            // 轮播控制
             startCarousel() {
                 clearInterval(this.autoTimer);
                 this.autoTimer = setInterval(()=>{
@@ -385,11 +377,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.slideIndex = this.slideIndex >= this.recommendList.length-1 ? 0 : this.slideIndex +1;
                 this.startCarousel();
             },
-            // 搜索
             doSearch() {
                 this.currentCat = "all";
+                this.scrollToStrategyList();
             },
-            // 打开攻略弹窗
             openModal(item) {
                 this.currentItem = JSON.parse(JSON.stringify(item));
                 this.collectNum = item.collections;
@@ -398,24 +389,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.commentText = "";
                 this.modal.show();
             },
-            // 收藏切换
             toggleCollect() {
                 this.isCollected = !this.isCollected;
                 if(this.isCollected) this.collectNum ++;
                 else this.collectNum --;
             },
-            // 提交评论
             submitComment() {
                 const txt = this.commentText.trim();
                 if(!txt) return;
                 this.commentList.unshift({user:"我", text:txt});
                 this.commentText = "";
             },
-            // 回到顶部【原有方法完全保留，无需修改】
             scrollTop() {
                 window.scrollTo({top:0, behavior:"smooth"});
             },
-            // 退出登录（和首页共用存储）
             logout() {
                 this.currentUser = null;
                 localStorage.removeItem('currentUser');
