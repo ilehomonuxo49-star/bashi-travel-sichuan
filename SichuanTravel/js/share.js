@@ -223,52 +223,36 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
         mounted() {
-            // 优先渲染页面，不受草稿逻辑影响
             this.langData = this.langDict[this.currentLang];
-
-            // 容错捕获：草稿读取报错绝不白屏
-            try {
-                const draftIndexStr = localStorage.getItem('editDraftIndex');
-                if (!draftIndexStr || draftIndexStr === '' || !this.currentUser) return;
-
-                const draftIndex = Number(draftIndexStr);
-                if (isNaN(draftIndex) || draftIndex < 0) {
+            // 修复：读取编辑草稿
+            const draftIndexStr = localStorage.getItem('editDraftIndex');
+            if (draftIndexStr && draftIndexStr !== '' && this.currentUser) {
+                try {
+                    const draftIndex = Number(draftIndexStr);
+                    if (!isNaN(draftIndex) && draftIndex >= 0) {
+                        const userListStr = localStorage.getItem('web_users');
+                        if (userListStr) {
+                            const userList = JSON.parse(userListStr);
+                            const targetUser = userList.find(u => u.username === this.currentUser.username);
+                            if (targetUser && Array.isArray(targetUser.draftList) && targetUser.draftList[draftIndex]) {
+                                const draftItem = targetUser.draftList[draftIndex];
+                                if (draftItem.formData) {
+                                    // 回填表单文字信息
+                                    this.formData = JSON.parse(JSON.stringify(draftItem.formData));
+                                    this.coverIndex = draftItem.coverIndex ?? null;
+                                    // 刷新字数统计
+                                    this.countTitleWord();
+                                    this.countEditorWord();
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.log("草稿读取异常：", e);
+                } finally {
+                    // 读取完成立刻清除标记，防止刷新重复读取
                     localStorage.removeItem('editDraftIndex');
-                    return;
                 }
-
-                const userListStr = localStorage.getItem('web_users');
-                if (!userListStr) {
-                    localStorage.removeItem('editDraftIndex');
-                    return;
-                }
-
-                const userList = JSON.parse(userListStr);
-                const targetUser = userList.find(u => u.username === this.currentUser.username);
-
-                if (!targetUser || !Array.isArray(targetUser.draftList) || !targetUser.draftList[draftIndex]) {
-                    localStorage.removeItem('editDraftIndex');
-                    return;
-                }
-
-                const draftItem = targetUser.draftList[draftIndex];
-                if (!draftItem.formData) {
-                    localStorage.removeItem('editDraftIndex');
-                    return;
-                }
-
-                // 回填草稿数据
-                this.formData = JSON.parse(JSON.stringify(draftItem.formData));
-                this.coverIndex = draftItem.coverIndex ?? null;
-
-                this.countTitleWord();
-                this.countEditorWord();
-
-            } catch (e) {
-                console.log("草稿读取异常，跳过回填：", e);
-            } finally {
-                // 清空临时标记，防止重复加载
-                localStorage.removeItem('editDraftIndex');
             }
         },
         methods: {
@@ -372,6 +356,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert(this.currentLang === 'cn' ? '表单草稿已成功保存到你的账号草稿箱！前往个人中心查看' : 'Draft saved to your account! Check in user center');
             },
             previewArticle() {},
+            // 发布转base64，解决跨页面图片失效
             submitPublish() {
                 const {title, dest, travelTime, cost, content, day, tags} = this.formData;
                 if (!title) return alert(this.currentLang === 'cn' ? '请填写攻略标题！' : 'Please fill guide title!');
@@ -382,31 +367,58 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const newGuideId = Date.now();
                 const tagObjList = tags.map(tag => ({cn: tag, en: tag}));
-                let coverImg = "../images/banner1.png";
-                if(this.coverIndex !== null && this.formData.uploadFiles[this.coverIndex]) {
-                    coverImg = URL.createObjectURL(this.formData.uploadFiles[this.coverIndex]);
+                // 无封面使用默认图
+                if(this.coverIndex === null || !this.formData.uploadFiles[this.coverIndex]) {
+                    const newGuide = {
+                        id: newGuideId,
+                        title: {cn: title, en: title},
+                        subTitle: {cn: dest + " · " + day, en: dest + " · " + day},
+                        days: day,
+                        budget: String(cost),
+                        views: 0,
+                        collections: 0,
+                        badge: "",
+                        categories: ["all", dest],
+                        tags: tagObjList,
+                        imgSrc: "../images/jingdian/kuanzhaixiangzi1.jpg",
+                        desc: {
+                            cn: content,
+                            en: content
+                        },
+                        comments: []
+                    };
+                    localStorage.setItem('newPublishGuide', JSON.stringify(newGuide));
+                    alert(this.currentLang === 'cn' ? '发布成功！跳转至攻略列表页' : 'Publish success, jump to guide list page');
+                    window.location.href = './strategy.html';
+                    return;
                 }
-                const newGuide = {
-                    id: newGuideId,
-                    title: {cn: title, en: title},
-                    subTitle: {cn: dest + " · " + day, en: dest + " · " + day},
-                    days: day,
-                    budget: String(cost),
-                    views: 0,
-                    collections: 0,
-                    badge: "",
-                    categories: ["all", dest],
-                    tags: tagObjList,
-                    imgSrc: coverImg,
-                    desc: {
-                        cn: content,
-                        en: content
-                    },
-                    comments: []
-                };
-                localStorage.setItem('newPublishGuide', JSON.stringify(newGuide));
-                alert(this.currentLang === 'cn' ? '发布成功！跳转至攻略列表页' : 'Publish success, jump to guide list page');
-                window.location.href = './strategy.html';
+                // 存在封面，转base64永久存储
+                const file = this.formData.uploadFiles[this.coverIndex];
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => {
+                    const newGuide = {
+                        id: newGuideId,
+                        title: {cn: title, en: title},
+                        subTitle: {cn: dest + " · " + day, en: dest + " · " + day},
+                        days: day,
+                        budget: String(cost),
+                        views: 0,
+                        collections: 0,
+                        badge: "",
+                        categories: ["all", dest],
+                        tags: tagObjList,
+                        imgSrc: reader.result,
+                        desc: {
+                            cn: content,
+                            en: content
+                        },
+                        comments: []
+                    };
+                    localStorage.setItem('newPublishGuide', JSON.stringify(newGuide));
+                    alert(this.currentLang === 'cn' ? '发布成功！跳转至攻略列表页' : 'Publish success, jump to guide list page');
+                    window.location.href = './strategy.html';
+                }
             },
             openDraft() {
                 window.location.href = './user.html';
