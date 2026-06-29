@@ -2,10 +2,7 @@ const { createApp, ref, computed, onMounted } = Vue;
 
 createApp({
     setup() {
-        // 扣子接口配置（完全保留你的原始密钥ID）
-        const COZE_API_URL = "https://api.coze.cn/v1/workflow/run";
-        const COZE_API_TOKEN = "pat_zAV00pJuQCGGwvfoA1pTq4HCvpEh0ptrqbojc5Yj3QzCDYmEg3dB7IFCkgEZKswd";
-        const WORKFLOW_ID = "7655625793737736226";
+        // ============ 后端接口配置 ============
         const USER_ID = "huang";
         const API_URL = "http://127.0.0.1:3000/api/chat";
 
@@ -136,30 +133,43 @@ createApp({
             return res;
         }
 
-        // 扣子接口请求函数完全不变
-        const fetchCozeChat = async (query) => {
-            const reqBody = {
-                workflow_id: WORKFLOW_ID,
-                parameters: { question: query }
-            };
-            const res = await fetch(COZE_API_URL, {
+        // ============ SSE 流式请求后端 /api/chat ============
+        const fetchCozeChat = async (query, onChunk) => {
+            const res = await fetch(API_URL, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${COZE_API_TOKEN}`
+                    "Content-Type": "application/json"
                 },
-                body: JSON.stringify(reqBody)
+                body: JSON.stringify({ query: query, user_id: USER_ID })
             });
-            const data = await res.json();
-            if (data.code !== 0) {
-                throw new Error(data.msg || "工作流接口调用失败");
+            if (!res.ok) {
+                throw new Error(`接口请求失败 (HTTP ${res.status})`);
             }
-            const rawReply = data.data;
-            const cleanReply = cleanText(rawReply);
-            return { content: cleanReply };
+            // 读取 SSE 流
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+            let buffer = "";
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                // 解析 SSE 数据行：data: {内容}\n\n
+                const lines = buffer.split("\n");
+                // 最后一行可能不完整，保留在 buffer 中
+                buffer = lines.pop();
+                for (const line of lines) {
+                    if (line.startsWith("data: ")) {
+                        const payload = line.slice(6); // 去掉 "data: " 前缀
+                        if (payload === "[DONE]") {
+                            return; // 流结束
+                        }
+                        onChunk(payload);
+                    }
+                }
+            }
         };
 
-        // ========== 新增历史对话持久化代码（纯新增，不改动原有逻辑）==========
+        // ========== 新增历史对话持久化代码（完全不变）==========
         const chatSessionList = ref([]);
         const currentSessionId = ref("");
         const loadAllSession = () => {
@@ -210,7 +220,7 @@ createApp({
         };
         // ==================================================================
 
-        // 发送消息原有逻辑不变，仅新增同步会话两行代码
+        // 发送消息 — 支持 SSE 流式逐字显示
         const sendMsg = async () => {
             const query = inputVal.value.trim();
             if (!query) return;
@@ -225,27 +235,55 @@ createApp({
             loading.value = true;
             updateCurrentSessionMsg();
 
+            // 用于在流式回调中追踪 AI 消息
+            let aiMsg = null;
+            const scrollToBottom = () => {
+                const el = document.getElementById("chatContent");
+                if (el) el.scrollTop = el.scrollHeight;
+            };
+
             try {
-                const data = await fetchCozeChat(query);
-                loading.value = false;
-                msgList.value.push({
-                    id: msgId++,
-                    type: "ai",
-                    content: data.content
+                await fetchCozeChat(query, (chunkText) => {
+                    if (!aiMsg) {
+                        // 首个 chunk：关闭 loading，创建 AI 消息
+                        loading.value = false;
+                        aiMsg = {
+                            id: msgId++,
+                            type: "ai",
+                            content: chunkText
+                        };
+                        msgList.value.push(aiMsg);
+                    } else {
+                        // 后续 chunk：追加内容
+                        aiMsg.content += chunkText;
+                    }
+                    scrollToBottom();
+                    updateCurrentSessionMsg();
                 });
+                // 流正常结束（收到 [DONE]），若后端未返回任何内容则给个兜底
+                if (!aiMsg) {
+                    loading.value = false;
+                    msgList.value.push({
+                        id: msgId++,
+                        type: "ai",
+                        content: currentLang.value === 'zh' ? '（暂无回复内容）' : '(No response)'
+                    });
+                }
                 updateCurrentSessionMsg();
-                setTimeout(() => {
-                    document.getElementById("chatContent").scrollTop = document.getElementById("chatContent").scrollHeight;
-                }, 10);
             } catch (err) {
                 loading.value = false;
-                msgList.value.push({
-                    id: msgId++,
-                    type: "ai",
-                    content: `扣子工作流接口请求失败：${err.message}\n操作提示：1.使用VSCode Live Server打开页面解决跨域；2.核对WORKFLOW_ID、令牌是否完整无空格`
-                });
+                // 若已开始流式输出但中途出错，在已有气泡后追加错误提示
+                if (aiMsg) {
+                    aiMsg.content += `\n\n[请求中断：${err.message}]`;
+                } else {
+                    msgList.value.push({
+                        id: msgId++,
+                        type: "ai",
+                        content: `请求失败：${err.message}\n请确认后端服务已启动（localhost:3000）`
+                    });
+                }
                 updateCurrentSessionMsg();
-                console.error("工作流接口错误：", err);
+                console.error("接口请求错误：", err);
             }
         };
 
