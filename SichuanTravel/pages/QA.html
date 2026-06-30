@@ -60,7 +60,7 @@
                 <div class="avatar" :class="item.type === 'user' ? 'user-avatar' : 'ai-avatar'">
                     {{ item.type === 'user' ? '你' : '🐼' }}
                 </div>
-                <div v-if="item.type === 'ai'" class="msg-bubble ai-bubble" v-html="item.content.replaceAll('\n','<br>')"></div>
+                <div v-if="item.type === 'ai'" class="msg-bubble ai-bubble" v-html="formatAIText(item.content)"></div>
             </div>
             <div v-if="loading" class="msg-item ai-msg loading-item">
                 <div class="avatar ai-avatar">🐼</div>
