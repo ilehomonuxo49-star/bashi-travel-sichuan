@@ -4,7 +4,7 @@ createApp({
     setup() {
         // ============ 后端接口配置 ============
         const USER_ID = "huang";
-        const API_URL = "http://127.0.0.1:3000/api/chat";
+        const API_URL = "/api/chat";  // 相对路径，无需跨域
 
         // 双语语言包完全原样保留
         const langMap = {
@@ -133,6 +133,22 @@ createApp({
             return res;
         }
 
+        // ========== 文本清洗：去除可能的 JSON 残留和思考标记 ==========
+        const cleanChunk = (raw) => {
+            if (!raw) return '';
+            let text = raw;
+            // 去掉可能的 JSON 格式残留
+            text = text.replace(/"?content"?\s*:\s*"/g, '')
+                       .replace(/"?reasoning_content"?\s*:\s*"/g, '')
+                       .replace(/"?msg_type"?\s*:\s*"[^"]*"/g, '')
+                       .replace(/"?type"?\s*:\s*"[^"]*"/g, '')
+                       .replace(/[{}"]/g, '')
+                       .replace(/\\n/g, '\n');
+            // 去掉纯元数据行
+            if (/^(event:|data:\s*[\[{])/.test(text.trim())) return '';
+            return text;
+        };
+
         // ============ SSE 流式请求后端 /api/chat ============
         const fetchCozeChat = async (query, onChunk) => {
             const res = await fetch(API_URL, {
@@ -163,7 +179,8 @@ createApp({
                         if (payload === "[DONE]") {
                             return; // 流结束
                         }
-                        onChunk(payload);
+                        const cleaned = cleanChunk(payload);
+                        if (cleaned) onChunk(cleaned);
                     }
                 }
             }
@@ -297,6 +314,22 @@ createApp({
             else switchSession(chatSessionList.value[0].id);
         });
 
+        // 格式化 AI 文本：换行 + 清除思考残留
+        const formatAIText = (text) => {
+            if (!text) return '';
+            let html = text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\n/g, '<br>')
+                // 加粗 **文字**
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                // 标题 ###
+                .replace(/^### (.+)$/gm, '<h4 style="margin:10px 0 6px;color:#2c2044;">$1</h4>')
+                .replace(/^## (.+)$/gm, '<h3 style="margin:12px 0 6px;color:#2c2044;">$1</h3>');
+            return html;
+        };
+
         return {
             langText,
             showDrop,
@@ -304,6 +337,7 @@ createApp({
             loading,
             msgList,
             sidebarFold,
+            formatAIText,
             toggleSidebar,
             toggleDrop,
             setLang,
