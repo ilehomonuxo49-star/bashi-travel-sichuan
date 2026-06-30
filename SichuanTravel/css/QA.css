@@ -302,6 +302,13 @@ a {
 .ai-bubble {
     background: var(--ai-bubble);
     border-top-left-radius: 4px;
+    white-space: pre-wrap;       /* 保留换行 */
+    word-break: break-word;
+}
+.ai-bubble br {
+    display: block;
+    content: "";
+    margin-bottom: 6px;          /* 段落间距 */
 }
 .user-bubble {
     background: var(--user-bubble);
